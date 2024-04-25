@@ -9,3 +9,5 @@
     - `SelectOnlyDodecagons` : 現在選択中のオブジェクトのうち, 十角形だけを選択した状態にする.
 - `assign_number`
     - `AssignNumbers` : テキストフレームに選択順で番号を振る.
+- `assign_weight`
+    - `AssignWeightsRandom` : 選択中の辺にランダムな重みを振る.
