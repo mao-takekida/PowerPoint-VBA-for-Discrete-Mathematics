@@ -13,6 +13,11 @@ Function IsDecagon(shape As shape) As Boolean
         IsDecagon = shape.AutoShapeType = msoShapeDecagon
 End Function
 
+' shape がテキストボックスであれば True を返す
+Function IsTextBox(shape As shape) As Boolean
+        IsTextBox = shape.Type = msoTextBox
+End Function
+
 ' 現在のスライドの選択したオブジェクトから 指定されたタイプのオブジェクトだけを選択した状態にする
 ' 引数  type_str: 選択するオブジェクトのタイプを表す文字列
 Sub SelectOnly(type_str As String)
@@ -40,6 +45,8 @@ Sub SelectOnly(type_str As String)
                 ElseIf type_str = "oval" And IsOval(shape) Then
                         is_target_type = True
                 ElseIf type_str = "decagon" And IsDecagon(shape) Then
+                        is_target_type = True
+                ElseIf type_str = "textbox" And IsTextBox(shape) Then
                         is_target_type = True
                 Else
                         is_target_type = False
@@ -80,4 +87,9 @@ End Sub
 ' 選択したオブジェクトから10角形のみを選択した状態にする
 Sub SelectOnlyDecagons()
         SelectOnly "decagon"
+End Sub
+
+' 選択したオブジェクトからテキストボックスのみを選択した状態にする
+Sub SelectOnlyTextBoxes()
+        SelectOnly "textbox"
 End Sub
