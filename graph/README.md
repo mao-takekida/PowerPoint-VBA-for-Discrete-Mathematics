@@ -7,6 +7,7 @@
     - `SelectOnlyEdges` : 現在選択中のオブジェクトのうち, 辺だけを選択した状態にする.
     - `SelectOnlyOvals` : 現在選択中のオブジェクトのうち, 楕円(円)だけを選択した状態にする.
     - `SelectOnlyDodecagons` : 現在選択中のオブジェクトのうち, 十角形だけを選択した状態にする.
+    - `SelectOnlyTextBoxes` : 現在選択中のオブジェクトのうち, テキストボックスだけを選択した状態にする.
 - `assign_number`
     - `AssignNumbers` : テキストフレームに選択順で番号を振る.
 - `assign_weight`
