@@ -33,7 +33,7 @@ Sub AddProgressBar()
         shape.Fill.ForeColor.RGB = BAR_COLOR
         ' プログレスバーの位置とサイズを設定
         shape.Left = 0
-        shape.Top = slide_height - 10
+        shape.Top = slide_height - BAR_HEIGHT
         shape.Width = slide_width * i / total_slides
         shape.Height = BAR_HEIGHT
     Next i
