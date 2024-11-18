@@ -1,3 +1,5 @@
+サイズは 4:3 で作成している.
+
 - `set_section_titles.vba`
     - `SetSectionTitles`
         - 章タイトルを入力する.
