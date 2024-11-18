@@ -2,7 +2,7 @@
 Const THEME_NUMBER As Integer = 1  ' 使用するテーマの番号
 Const ACCENT_COLOR_INDEX As Integer = msoThemeAccent4 ' 使用するアクセントカラーのインデックス
 ' 薄いグレーの色 (RGB: 204,204,204)
-Const GRAY_COLOR As Long = 13421772 
+Const GRAY_COLOR As Long = 13421772
 
 ' スライドマスターの自作レイアウト名
 Const AGENDA_LAYOUT_NAME As String = "Agenda Layout" ' Agenda スライドのレイアウト名
@@ -12,14 +12,15 @@ Const CONTENT_LAYOUT_NAME As String = "Content Layout" ' Content スライドの
 '----------------------------------------------------------------------------------------------------
 
 ' 一つ目のアジェンダのテキストボックスの位置
-Const FIRST_AGENDA_TEXTBOX_Y As Integer = 60
+Const FIRST_AGENDA_TEXTBOX_Y As Integer = 100
 ' 最後のアジェンダのテキストボックスの位置
 Const LAST_AGENDA_TEXTBOX_Y As Integer = 435
 ' テキストボックスと円のY位置の差
-Const AGENDA_CIRCLE_TEXTBOX_DIFF As Single = 3.6
+Const AGENDA_CIRCLE_TEXTBOX_DIFF As Single = 7.65
 ' 円の高さ、幅
-Const AGENDA_CIRCLE_HEIGHT_WIDTH As Integer = 38
-
+Const AGENDA_CIRCLE_HEIGHT_WIDTH As Integer = 30
+' テキストボックスのフォントファミリー
+Const AGENDA_TEXTBOX_FONT_FAMILY As String = "YuGothic"
 '----------------------------------------------------------------------------------------------------
 
 ' Agenda スライドのレイアウトを取得
@@ -119,15 +120,22 @@ End Function
 
 ' Agenda スライドを作成する.
 ' 指定した章のインデックスをアクセント{AccentNumber}の色に色付けして表示する
-Function CreateAgendaSlide(section_titles As Variant, section_index As Integer) As Slide
+Function CreateAgendaSlide(section_titles As Variant, section_index As Integer) As slide
     ' 章のリストをテキストボックスに表示する
     Dim i As Integer
-    Dim textbox As Shape
+    Dim textbox As shape
     Dim yPosition As Single
-    Dim agendaCircle As Shape
+    Dim agendaCircle As shape
 
     ' スライドを作成して, 末尾に追加
-    Set CreateAgendaSlide = ActivePresentation.Slides.Add(ActivePresentation.Slides.Count + 1, ppLayoutText)
+    Set CreateAgendaSlide = ActivePresentation.Slides.Add(ActivePresentation.Slides.Count + 1, ppLayoutBlank)
+
+    ' スライドの日付、フッター、スライド番号を無効化
+    With CreateAgendaSlide.HeadersFooters
+        .Footer.Visible = msoFalse
+        .DateAndTime.Visible = msoFalse
+        .SlideNumber.Visible = msoFalse
+    End With
 
     For i = 0 To UBound(section_titles)
         ' テキストボックスを作成
@@ -135,11 +143,13 @@ Function CreateAgendaSlide(section_titles As Variant, section_index As Integer) 
         yPosition = GetTextboxYPosition(UBound(section_titles) + 1, i)
         Set textbox = CreateAgendaSlide.Shapes.AddTextbox( _
             msoTextOrientationHorizontal, _
-            165, _ 
+            165, _
             yPosition, _
             530, _
             40)
-        textbox.TextFrame.TextRange.Text = section_titles(i)
+        textbox.TextFrame.TextRange.text = section_titles(i)
+        ' 游ゴシック
+        textbox.TextFrame.TextRange.Font.Name = AGENDA_TEXTBOX_FONT_FAMILY
         textbox.TextFrame.TextRange.Font.Color.RGB = GRAY_COLOR
         textbox.TextFrame.TextRange.Font.Size = 32
         textbox.TextFrame.TextRange.Font.Bold = msoTrue
@@ -150,7 +160,7 @@ Function CreateAgendaSlide(section_titles As Variant, section_index As Integer) 
 
         ' 円の図形を作成
         Set agendaCircle = CreateAgendaSlide.Shapes.AddShape(msoShapeOval, _
-            120, _
+            115, _
             GetCircleYPosition(UBound(section_titles) + 1, i), _
             AGENDA_CIRCLE_HEIGHT_WIDTH, _
             AGENDA_CIRCLE_HEIGHT_WIDTH)
@@ -159,6 +169,19 @@ Function CreateAgendaSlide(section_titles As Variant, section_index As Integer) 
         ' 円の図形の枠線を非表示にする
         agendaCircle.Line.Visible = msoFalse
     Next i
+
+    If UBound(section_titles) > 0 Then
+        ' 白い縦棒を追加
+        Set verticalLine = CreateAgendaSlide.Shapes.AddShape(msoShapeRectangle, _
+            126.42, _
+            FIRST_AGENDA_TEXTBOX_Y + 23, _
+            8.5, _
+            339)
+        ' 縦棒の色を白にする
+        verticalLine.Fill.ForeColor.RGB = RGB(255, 255, 255)
+        ' 縦棒の枠線を非表示にする
+        verticalLine.Line.Visible = msoFalse
+    End If
 
     ' レイアウトを設定
     CreateAgendaSlide.CustomLayout = GetAgendaLayout
@@ -169,7 +192,7 @@ Sub SetSectionTitles()
     Dim inputText As String
     Dim section_titles As Variant
     Dim i As Integer
-    Dim newSlide As Slide
+    Dim newSlide As slide
 
     inputText = InputSectionTitles()
     ' 入力が正しいかチェック
@@ -183,3 +206,5 @@ Sub SetSectionTitles()
         Set newSlide = CreateAgendaSlide(section_titles, i)
     Next i
 End Sub
+
+
