@@ -19,10 +19,19 @@ Const LAST_AGENDA_TEXTBOX_Y As Integer = 435
 Const AGENDA_CIRCLE_TEXTBOX_DIFF As Single = 7.65
 ' 円の高さ、幅
 Const AGENDA_CIRCLE_HEIGHT_WIDTH As Integer = 30
-' テキストボックスのフォントファミリー
-Const AGENDA_TEXTBOX_FONT_FAMILY As String = "YuGothic"
+' テキストボックスのフォント
+Const TEXTBOX_FONT_NAME  As String = "YuGothic"
 ' 小さい円のテキストボックスと円のY位置の差
 Const AGENDA_SMALL_CIRCLE_TEXTBOX_DIFF As Single = 16.44 - 8.787
+'----------------------------------------------------------------------------------------------------
+' コンテンツスライドの右端の円のX位置
+Const CONTENT_RIGHT_CIRCLE_X As Single = 708.9
+' コンテンツスライドの右端の円のY位置
+Const CONTENT_RIGHT_CIRCLE_Y As Single = 21.5
+' 小さい円の間隔
+Const CONTENT_SMALL_CIRCLE_INTERVAL As Single = 11
+' 小さい円の高さ、幅
+Const CONTENT_SMALL_CIRCLE_HEIGHT_WIDTH As Single = 8.22
 '----------------------------------------------------------------------------------------------------
 
 ' Agenda スライドのレイアウトを取得
@@ -87,7 +96,7 @@ End Function
 
 ' 章タイトルを入力する.
 Function InputSectionTitles() As String
-    InputSectionTitles = InputBox("Enter section titles separated by commas")
+    InputSectionTitles = InputBox("章タイトルをカンマ区切りで入力してください")
 End Function
 
 ' 章タイトルのリストを取得
@@ -126,7 +135,7 @@ Function GetSmallCircleYPosition(section_count As Integer, current_index As Inte
 End Function
 
 ' Agenda スライドを作成する.
-' 指定した章のインデックスをアクセント{AccentNumber}の色に色付けして表示する
+' 指定した章のインデックスをアクセント{ACCENT_COLOR_INDEX}の色に色付けして表示する
 Function CreateAgendaSlide(section_titles As Variant, section_index As Integer) As slide
     ' 章のリストをテキストボックスに表示する
     Dim i As Integer
@@ -158,7 +167,7 @@ Function CreateAgendaSlide(section_titles As Variant, section_index As Integer) 
             40)
         textbox.TextFrame.TextRange.text = section_titles(i)
         ' 游ゴシック
-        textbox.TextFrame.TextRange.Font.Name = AGENDA_TEXTBOX_FONT_FAMILY
+        textbox.TextFrame.TextRange.Font.Name = TEXTBOX_FONT_NAME
         textbox.TextFrame.TextRange.Font.Color.RGB = GRAY_COLOR
         textbox.TextFrame.TextRange.Font.Size = 32
         textbox.TextFrame.TextRange.Font.Bold = msoTrue
@@ -173,8 +182,10 @@ Function CreateAgendaSlide(section_titles As Variant, section_index As Integer) 
         agendaCircle.Fill.ForeColor.RGB = RGB(255, 255, 255)
         ' 円の図形の枠線を非表示にする
         agendaCircle.Line.Visible = msoFalse
+        ' 円の図形の名前を設定
+        agendaCircle.Name = "AgendaWhiteCircle" & i
 
-        ' 指定した章のインデックスをアクセント{AccentNumber}の色に色付けする
+        ' 指定した章のインデックスをアクセント{ACCENT_COLOR_INDEX}の色に色付けする
         If i = section_index Then
             textbox.TextFrame.TextRange.Font.Color.RGB = GetAccentColor()
             ' 小さい円を追加
@@ -183,7 +194,7 @@ Function CreateAgendaSlide(section_titles As Variant, section_index As Integer) 
                 GetSmallCircleYPosition(UBound(section_titles) + 1, i), _
                 AGENDA_CIRCLE_HEIGHT_WIDTH / 2, _
                 AGENDA_CIRCLE_HEIGHT_WIDTH / 2)
-            ' 小さい円の色をアクセント{AccentNumber}の色にする
+            ' 小さい円の色をアクセント{ACCENT_COLOR_INDEX}の色にする
             smallCircle.Fill.ForeColor.RGB = GetAccentColor()
             ' 小さい円の枠線を非表示にする
             smallCircle.Line.Visible = msoFalse 
@@ -205,10 +216,54 @@ Function CreateAgendaSlide(section_titles As Variant, section_index As Integer) 
         verticalLine.Line.Visible = msoFalse
         ' 最後面に配置
         verticalLine.ZOrder msoSendToBack
+        ' 名前を設定
+        verticalLine.Name = "AgendaVerticalLine"
     End If
 
     ' レイアウトを設定
     CreateAgendaSlide.CustomLayout = GetAgendaLayout
+End Function
+
+Function CreateContentSlide(section_titles As Variant, section_index As Integer) As slide
+    ' スライドを作成して, 末尾に追加
+    Set CreateContentSlide = ActivePresentation.Slides.Add(ActivePresentation.Slides.Count + 1, ppLayoutBlank)
+    ' スライドの日付、フッターを無効化
+    With CreateContentSlide.HeadersFooters
+        .Footer.Visible = msoFalse
+        .DateAndTime.Visible = msoFalse
+    End With
+    ' レイアウトを設定
+    CreateContentSlide.CustomLayout = GetContentLayout
+
+    ' セクションタイトルを表示
+    CreateContentSlide.Shapes.Title.TextFrame.TextRange.Text = section_titles(section_index)
+
+    ' セクションタイトルのフォントを游ゴシックにする
+    CreateContentSlide.Shapes.Title.TextFrame.TextRange.Font.Name = TEXTBOX_FONT_NAME
+    ' 色をアクセント{ACCENT_COLOR_INDEX}の色にする
+    CreateContentSlide.Shapes.Title.TextFrame.TextRange.Font.Color.RGB = GetAccentColor()
+
+    ' 小さい円を追加する.
+    Dim smallCircle As shape
+    For i = 0 To UBound(section_titles)
+        Set smallCircle = CreateContentSlide.Shapes.AddShape(msoShapeOval, _
+            CONTENT_RIGHT_CIRCLE_X - i * CONTENT_SMALL_CIRCLE_INTERVAL, _
+            CONTENT_RIGHT_CIRCLE_Y, _
+            CONTENT_SMALL_CIRCLE_HEIGHT_WIDTH, _
+            CONTENT_SMALL_CIRCLE_HEIGHT_WIDTH)
+        ' 小さい円の色をアクセント白にする
+        smallCircle.Fill.ForeColor.RGB = RGB(255, 255, 255)
+        ' 小さい円の枠線を灰色にする
+        smallCircle.Line.ForeColor.RGB = GRAY_COLOR
+        ' 名前を設定 ContentSmallCircle{UBound(section_titles) - i}
+        smallCircle.Name = "ContentSmallCircle" & (UBound(section_titles) - i)
+    Next i
+
+    ' i 番目の小さい円をアクセント{ACCENT_COLOR_INDEX}の色にする
+    CreateContentSlide.Shapes("ContentSmallCircle" & section_index).Fill.ForeColor.RGB = GetAccentColor()
+    ' 枠線を非表示にする
+    CreateContentSlide.Shapes("ContentSmallCircle" & section_index).Line.Visible = msoFalse
+
 End Function
 
 Sub SetSectionTitles()
@@ -225,9 +280,11 @@ Sub SetSectionTitles()
     End If
     ' 章タイトルのリストを取得
     section_titles = GetSectionTitles(inputText)
-    ' アジェンダスライドを作成
     For i = 0 To UBound(section_titles)
+        ' アジェンダスライドを作成
         Set newSlide = CreateAgendaSlide(section_titles, i)
+        ' コンテンツスライドを作成
+        Set newSlide = CreateContentSlide(section_titles, i)
     Next i
 End Sub
 
