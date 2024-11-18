@@ -15,13 +15,13 @@ Const CONTENT_LAYOUT_NAME As String = "Content Layout" ' Content スライドの
 Const FIRST_AGENDA_TEXTBOX_Y As Integer = 100
 ' 最後のアジェンダのテキストボックスの位置
 Const LAST_AGENDA_TEXTBOX_Y As Integer = 435
-' テキストボックスと円のY位置の差
-Const AGENDA_CIRCLE_TEXTBOX_DIFF As Single = 7.65
-' 円の高さ、幅
-Const AGENDA_CIRCLE_HEIGHT_WIDTH As Integer = 30
+' テキストボックスと丸かど四角の図形のY位置の差
+Const AGENDA_ROUNDED_RECTANGLE_TEXTBOX_DIFF As Single = 7.65
+' 丸かど四角の図形の高さ、幅
+Const AGENDA_ROUNDED_RECTANGLE_HEIGHT_WIDTH As Integer = 30
 ' テキストボックスのフォント
 Const TEXTBOX_FONT_NAME  As String = "YuGothic"
-' 小さい円のテキストボックスと円のY位置の差
+' 小さい円とテキストボックスのY位置の差
 Const AGENDA_SMALL_CIRCLE_TEXTBOX_DIFF As Single = 16.44 - 8.787
 '----------------------------------------------------------------------------------------------------
 ' コンテンツスライドの右端の円のX位置
@@ -125,13 +125,13 @@ Function GetTextboxYPosition(section_count As Integer, current_index As Integer)
 End Function
 
 ' 円のY位置を取得する関数
-Function GetCircleYPosition(section_count As Integer, current_index As Integer) As Single
-    GetCircleYPosition = GetTextboxYPosition(section_count, current_index) + AGENDA_CIRCLE_TEXTBOX_DIFF
+Function GetRouondedRectangleYPosition(section_count As Integer, current_index As Integer) As Single
+    GetRouondedRectangleYPosition = GetTextboxYPosition(section_count, current_index) + AGENDA_ROUNDED_RECTANGLE_TEXTBOX_DIFF
 End Function
 
 ' 小さい円のY位置を取得する関数
 Function GetSmallCircleYPosition(section_count As Integer, current_index As Integer) As Single
-    GetSmallCircleYPosition = GetCircleYPosition(section_count, current_index) + AGENDA_SMALL_CIRCLE_TEXTBOX_DIFF
+    GetSmallCircleYPosition = GetRouondedRectangleYPosition(section_count, current_index) + AGENDA_SMALL_CIRCLE_TEXTBOX_DIFF
 End Function
 
 ' Agenda スライドを作成する.
@@ -141,7 +141,7 @@ Function CreateAgendaSlide(section_titles As Variant, section_index As Integer) 
     Dim i As Integer
     Dim textbox As shape
     Dim yPosition As Single
-    Dim agendaCircle As shape
+    Dim agendaRoundedRect As shape
     Dim smallCircle As shape
     Dim verticalLine As shape
 
@@ -172,18 +172,16 @@ Function CreateAgendaSlide(section_titles As Variant, section_index As Integer) 
         textbox.TextFrame.TextRange.Font.Size = 32
         textbox.TextFrame.TextRange.Font.Bold = msoTrue
 
-        ' 円の図形を作成
-        Set agendaCircle = CreateAgendaSlide.Shapes.AddShape(msoShapeOval, _
+        ' 丸かど四角の図形を作成
+        Set agendaRoundedRect = CreateAgendaSlide.Shapes.AddShape(msoShapeRoundedRectangle, _
             115, _
-            GetCircleYPosition(UBound(section_titles) + 1, i), _
-            AGENDA_CIRCLE_HEIGHT_WIDTH, _
-            AGENDA_CIRCLE_HEIGHT_WIDTH)
-        ' 円の色を白にする
-        agendaCircle.Fill.ForeColor.RGB = RGB(255, 255, 255)
-        ' 円の図形の枠線を非表示にする
-        agendaCircle.Line.Visible = msoFalse
-        ' 円の図形の名前を設定
-        agendaCircle.Name = "AgendaWhiteCircle" & i
+            GetRouondedRectangleYPosition(UBound(section_titles) + 1, i), _
+            AGENDA_ROUNDED_RECTANGLE_HEIGHT_WIDTH, _
+            AGENDA_ROUNDED_RECTANGLE_HEIGHT_WIDTH)
+        ' 丸かど四角の色を白にする
+        agendaRoundedRect.Fill.ForeColor.RGB = RGB(255, 255, 255)
+        ' 丸かど四角の図形の枠線を非表示にする
+        agendaRoundedRect.Line.Visible = msoFalse
 
         ' 指定した章のインデックスをアクセント{ACCENT_COLOR_INDEX}の色に色付けする
         If i = section_index Then
@@ -192,8 +190,8 @@ Function CreateAgendaSlide(section_titles As Variant, section_index As Integer) 
             Set smallCircle = CreateAgendaSlide.Shapes.AddShape(msoShapeOval, _
                 122.7, _
                 GetSmallCircleYPosition(UBound(section_titles) + 1, i), _
-                AGENDA_CIRCLE_HEIGHT_WIDTH / 2, _
-                AGENDA_CIRCLE_HEIGHT_WIDTH / 2)
+                AGENDA_ROUNDED_RECTANGLE_HEIGHT_WIDTH / 2, _
+                AGENDA_ROUNDED_RECTANGLE_HEIGHT_WIDTH / 2)
             ' 小さい円の色をアクセント{ACCENT_COLOR_INDEX}の色にする
             smallCircle.Fill.ForeColor.RGB = GetAccentColor()
             ' 小さい円の枠線を非表示にする
@@ -206,9 +204,9 @@ Function CreateAgendaSlide(section_titles As Variant, section_index As Integer) 
     If UBound(section_titles) > 0 Then
         ' 白い縦棒を追加
         Set verticalLine = CreateAgendaSlide.Shapes.AddShape(msoShapeRectangle, _
-            126.42, _
+            128.69, _
             FIRST_AGENDA_TEXTBOX_Y + 23, _
-            8.5, _
+            2.834, _
             339)
         ' 縦棒の色を白にする
         verticalLine.Fill.ForeColor.RGB = RGB(255, 255, 255)
