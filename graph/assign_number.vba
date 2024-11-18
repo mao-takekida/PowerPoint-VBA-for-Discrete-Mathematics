@@ -15,16 +15,27 @@ Sub AssignNumbers()
     n = SelectedShapes.Count
 
     Dim i As Integer
+
+    ' 先頭の図形に振る番号
+    Dim number As Integer
+    number = 1
     For i = 1 To n
-        ' 選択された図形を取得
+        ' i 番目に選択された図形を取得
         Dim shape As Shape
         Set shape = SelectedShapes(i)
+
+        ' 先頭の図形に既にテキストがあり、それが数字である場合, その数字を number に設定
+        If i = 1 And shape.HasTextFrame And IsNumeric(shape.TextFrame.TextRange.Text) Then
+            number = CInt(shape.TextFrame.TextRange.Text)
+        End If
+
         ' テキストフレームがない場合, エラーを出力
         If shape.HasTextFrame = msoFalse Then
             MsgBox ("Select shapes with text frame")
             Exit Sub
         End If
+
         ' テキストを挿入
-        shape.TextFrame.TextRange.Text = CStr(i)
+        shape.TextFrame.TextRange.Text = CStr(number + i - 1)
     Next i
 End Sub
