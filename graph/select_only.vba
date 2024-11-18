@@ -1,6 +1,12 @@
 ' shape が辺であれば True を返す
 Function IsEdge(shape As shape) As Boolean
-        IsEdge = shape.Type = msoLine
+        If shape.Type = msoLine Then
+                IsEdge = True
+        ElseIf shape.Connector Then
+                IsEdge = True
+        Else
+                IsEdge = False
+        End If
 End Function
 
 ' shape が楕円であれば True を返す
