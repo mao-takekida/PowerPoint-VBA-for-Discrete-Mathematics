@@ -2,7 +2,5 @@
 
 - `count_slides`
     - `ShowSlideNumber` : スライド番号のテキストボックスに, 全体のスライド数と現在のスライド番号を表示する.
-- `progress_bar`
-    - `AddProgressBar` : スライド下部にプログレスバーを表示する.
 - `add_slides_with_titles_and_subtitles`
     - `AddSlidesWithTitlesAndSubtitles` : タイトルとサブタイトルを入力してスライドを作成する.
