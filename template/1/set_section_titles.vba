@@ -1,0 +1,185 @@
+' カラーテーマとアクセントカラーの定数
+Const THEME_NUMBER As Integer = 1  ' 使用するテーマの番号
+Const ACCENT_COLOR_INDEX As Integer = msoThemeAccent4 ' 使用するアクセントカラーのインデックス
+' 薄いグレーの色 (RGB: 204,204,204)
+Const GRAY_COLOR As Long = 13421772 
+
+' スライドマスターの自作レイアウト名
+Const AGENDA_LAYOUT_NAME As String = "Agenda Layout" ' Agenda スライドのレイアウト名
+Const CONTENT_LAYOUT_NAME As String = "Content Layout" ' Content スライドのレイアウト名
+
+
+'----------------------------------------------------------------------------------------------------
+
+' 一つ目のアジェンダのテキストボックスの位置
+Const FIRST_AGENDA_TEXTBOX_Y As Integer = 60
+' 最後のアジェンダのテキストボックスの位置
+Const LAST_AGENDA_TEXTBOX_Y As Integer = 435
+' テキストボックスと円のY位置の差
+Const AGENDA_CIRCLE_TEXTBOX_DIFF As Single = 3.6
+' 円の高さ、幅
+Const AGENDA_CIRCLE_HEIGHT_WIDTH As Integer = 38
+
+'----------------------------------------------------------------------------------------------------
+
+' Agenda スライドのレイアウトを取得
+Function GetAgendaLayout() As CustomLayout
+    Dim layout As CustomLayout
+    ' 通常は1つのデザインがメインで使われているので, 1番目のデザインを使用する
+    For Each layout In ActivePresentation.Designs(1).SlideMaster.CustomLayouts
+        If layout.Name = AGENDA_LAYOUT_NAME Then
+            Set GetAgendaLayout = layout
+            Exit Function
+        End If
+    Next layout
+    
+    ' 見つからない場合はエラー
+    MsgBox "Agenda layout not found"
+    Set GetAgendaLayout = Nothing
+End Function
+
+' Content スライドのレイアウトを取得
+Function GetContentLayout() As CustomLayout
+    Dim layout As CustomLayout
+    ' 通常は1つのデザインがメインで使われているので, 1番目のデザインを使用する
+    For Each layout In ActivePresentation.Designs(1).SlideMaster.CustomLayouts
+        If layout.Name = CONTENT_LAYOUT_NAME Then
+            Set GetContentLayout = layout
+            Exit Function
+        End If
+    Next layout
+    ' 見つからない場合はエラー
+    MsgBox "Content layout not found"
+    Set GetContentLayout = Nothing
+End Function
+
+' アクセントカラーを取得する関数
+Function GetAccentColor() As Long
+    ' 指定したテーマとアクセントカラーを使用して色を取得
+    GetAccentColor = ActivePresentation.Designs(THEME_NUMBER).SlideMaster.Theme.ThemeColorScheme.Colors(ACCENT_COLOR_INDEX).RGB
+End Function
+
+' 入力が正しいかチェック
+Function CheckInputSectionTitles(inputText As String) As Boolean
+    ' 空文字列の場合はエラー
+    If inputText = "" Then
+        MsgBox "Input is empty"
+        CheckInputSectionTitles = False
+        Exit Function
+    End If
+    ' カンマで分割して、要素数をチェック
+    Dim titles As Variant
+    titles = Split(inputText, ",")
+    ' それぞれの要素が空文字列でないかチェック
+    Dim title As Variant
+    For Each title In titles
+        If title = "" Then
+            MsgBox "Input is invalid"
+            CheckInputSectionTitles = False
+            Exit Function
+        End If
+    Next title
+    CheckInputSectionTitles = True
+End Function
+
+' 章タイトルを入力する.
+Function InputSectionTitles() As String
+    InputSectionTitles = InputBox("Enter section titles separated by commas")
+End Function
+
+' 章タイトルのリストを取得
+Function GetSectionTitles(inputText As String) As Variant
+    Dim titles As Variant
+    Dim i As Integer
+    
+    titles = Split(inputText, ",")
+    ' 前後の空白を削除
+    For i = 0 To UBound(titles)
+        titles(i) = Trim(titles(i))
+    Next i
+    
+    GetSectionTitles = titles
+End Function
+
+' テキストボックスのY位置を取得する関数
+Function GetTextboxYPosition(section_count As Integer, current_index As Integer) As Single
+    If section_count = 1 Then
+        ' セクションが1つしかない場合は中央に配置
+        GetTextboxYPosition = (FIRST_AGENDA_TEXTBOX_Y + LAST_AGENDA_TEXTBOX_Y) / 2
+    Else
+        ' セクションが複数ある場合は均等に配置
+        GetTextboxYPosition = FIRST_AGENDA_TEXTBOX_Y + current_index * (LAST_AGENDA_TEXTBOX_Y - FIRST_AGENDA_TEXTBOX_Y) / (section_count - 1)
+    End If
+End Function
+
+' 円のY位置を取得する関数
+Function GetCircleYPosition(section_count As Integer, current_index As Integer) As Single
+    GetCircleYPosition = GetTextboxYPosition(section_count, current_index) + AGENDA_CIRCLE_TEXTBOX_DIFF
+End Function
+
+' Agenda スライドを作成する.
+' 指定した章のインデックスをアクセント{AccentNumber}の色に色付けして表示する
+Function CreateAgendaSlide(section_titles As Variant, section_index As Integer) As Slide
+    ' 章のリストをテキストボックスに表示する
+    Dim i As Integer
+    Dim textbox As Shape
+    Dim yPosition As Single
+    Dim agendaCircle As Shape
+
+    ' スライドを作成して, 末尾に追加
+    Set CreateAgendaSlide = ActivePresentation.Slides.Add(ActivePresentation.Slides.Count + 1, ppLayoutText)
+
+    For i = 0 To UBound(section_titles)
+        ' テキストボックスを作成
+        ' 縦に並べる
+        yPosition = GetTextboxYPosition(UBound(section_titles) + 1, i)
+        Set textbox = CreateAgendaSlide.Shapes.AddTextbox( _
+            msoTextOrientationHorizontal, _
+            165, _ 
+            yPosition, _
+            530, _
+            40)
+        textbox.TextFrame.TextRange.Text = section_titles(i)
+        textbox.TextFrame.TextRange.Font.Color.RGB = GRAY_COLOR
+        textbox.TextFrame.TextRange.Font.Size = 32
+        textbox.TextFrame.TextRange.Font.Bold = msoTrue
+        ' 指定した章のインデックスをアクセント{AccentNumber}の色に色付けする
+        If i = section_index Then
+            textbox.TextFrame.TextRange.Font.Color.RGB = GetAccentColor()
+        End If
+
+        ' 円の図形を作成
+        Set agendaCircle = CreateAgendaSlide.Shapes.AddShape(msoShapeOval, _
+            120, _
+            GetCircleYPosition(UBound(section_titles) + 1, i), _
+            AGENDA_CIRCLE_HEIGHT_WIDTH, _
+            AGENDA_CIRCLE_HEIGHT_WIDTH)
+        ' 円の色を白にする
+        agendaCircle.Fill.ForeColor.RGB = RGB(255, 255, 255)
+        ' 円の図形の枠線を非表示にする
+        agendaCircle.Line.Visible = msoFalse
+    Next i
+
+    ' レイアウトを設定
+    CreateAgendaSlide.CustomLayout = GetAgendaLayout
+End Function
+
+Sub SetSectionTitles()
+    ' 入力を受け取る
+    Dim inputText As String
+    Dim section_titles As Variant
+    Dim i As Integer
+    Dim newSlide As Slide
+
+    inputText = InputSectionTitles()
+    ' 入力が正しいかチェック
+    If Not CheckInputSectionTitles(inputText) Then
+        Exit Sub
+    End If
+    ' 章タイトルのリストを取得
+    section_titles = GetSectionTitles(inputText)
+    ' アジェンダスライドを作成
+    For i = 0 To UBound(section_titles)
+        Set newSlide = CreateAgendaSlide(section_titles, i)
+    Next i
+End Sub
